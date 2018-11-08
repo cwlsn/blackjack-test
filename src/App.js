@@ -1,26 +1,286 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from "react";
+import styled, { createGlobalStyle } from "styled-components";
+import { GetRecommendedPlayerAction as getChartResult } from "blackjack-strategy";
+import { newDeck } from "./deck";
+
+const GlobalStyle = createGlobalStyle`
+	@import url('https://fonts.googleapis.com/css?family=Quicksand:400,700');
+	* {
+		box-sizing: border-box;
+		font-family: 'Quicksand';
+	}
+`;
+const Wrapper = styled.section`
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #169d39;
+`;
+
+const Title = styled.h1`
+  text-align: center;
+  color: #fff;
+  font-size: 36px;
+`;
+
+const Hand = styled.div`
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+`;
+
+const DealerHand = styled(Hand)``;
+
+const PlayerHand = styled(Hand)``;
+
+const Name = styled.span`
+  font-size: 24px;
+  color: #fff;
+  font-weight: bold;
+  position: absolute;
+  left: 40px;
+  text-align: right;
+  width: 200px;
+  display: inline-block;
+`;
+
+const HandScore = styled.span`
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.8);
+  position: absolute;
+  right: 40px;
+  width: 200px;
+  display: inline-block;
+`;
+
+const Card = styled.div`
+  height: 210px;
+  width: 140px;
+  padding: 20px;
+  font-size: 24px;
+  background: ${p => (p.down ? "#333" : "#fff")};
+  box-shadow: -3px 2px 3px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  color: ${p => (p.suit === "♠" || p.suit === "♣" ? "#333" : "#e60000")};
+  position: absolute;
+  overflow: hidden;
+
+  &:nth-child(3) {
+    left: calc(50% - 10px);
+    transform: rotate(4deg);
+  }
+
+  &:before {
+    content: "";
+    transform: skewY(-40deg);
+    position: absolute;
+    left: -50px;
+    top: 120px;
+    height: 250px;
+    background: ${p => (p.down ? "#444" : "aliceblue")};
+    width: 200px;
+  }
+`;
+
+const CardValue = styled.span`
+	&:after {
+		content: '${p => `${p.rank}${p.suit}`}';
+		position: absolute;
+		bottom: 20px;
+		right: 20px;
+		transform: rotate(180deg);
+	}
+`;
+
+const ActionBar = styled.footer`
+  position: fixed;
+  bottom: 0;
+  height: 60px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  color: #fff;
+  background: #333;
+  justify-content: space-between;
+  padding: 0 10px;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+`;
+
+const Button = styled.button`
+  border-radius: 6px;
+  border: none;
+  margin-left: 10px;
+  color: #fff;
+  background: #0d97d7;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 15px;
+`;
+
+const Score = styled.span`
+  font-size: 18px;
+`;
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      deck: [],
+      deadCards: [],
+      dealerHand: [],
+      playerHand: [],
+      gameScore: {
+        correct: 0,
+        total: 0
+      }
+    };
+  }
+
+  componentDidMount() {
+    this.resetDeck();
+  }
+
+  guess = answer => {
+    const { gameScore, playerHand, dealerHand } = this.state;
+    const options = {
+      hitSoft17: false,
+      surrender: "none",
+      offerInsurance: false,
+      numberOfDecks: 6
+    };
+
+    const result = getChartResult(
+      playerHand.map(c => this.cardValue(c.rank)),
+      this.cardValue(dealerHand[1].rank),
+      1,
+      false,
+      options
+    );
+
+    const earned = answer === result ? 1 : 0;
+
+    this.setState(
+      {
+        gameScore: {
+          correct: gameScore.correct + earned,
+          total: gameScore.total + 1
+        }
+      },
+      this.deal
+    );
+  };
+
+  drawCard = (down = false) => {
+    const [card, ...deck] = this.state.deck;
+    this.setState({ deck });
+    return {
+      down,
+      ...card
+    };
+  };
+
+  resetDeck = () => {
+    const deck = newDeck(6);
+    this.setState({ deck }, this.deal);
+  };
+
+  deal = async () => {
+    const dealerHand = [];
+    const playerHand = [];
+    // lol
+    playerHand.push(await this.drawCard());
+    dealerHand.push(await this.drawCard(true));
+    playerHand.push(await this.drawCard());
+    dealerHand.push(await this.drawCard());
+
+    this.setState({
+      dealerHand,
+      playerHand
+    });
+  };
+
+  cardValue(rank) {
+    let value;
+    const parsedRank = parseInt(rank);
+    if (rank === "A") {
+      value = 11;
+    } else if (isNaN(parsedRank)) {
+      value = 10;
+    } else {
+      value = parsedRank;
+    }
+    return value;
+  }
+
+  calculateScore = () => {
+    const { playerHand } = this.state;
+    if (playerHand[0].rank === "A" && playerHand[1].rank === "A") {
+      return "Soft 12";
+    }
+
+    let soft = false;
+    if (playerHand[0].rank === "A" || playerHand[1].rank === "A") {
+      soft = true;
+    }
+    const total =
+      this.cardValue(playerHand[0].rank) + this.cardValue(playerHand[1].rank);
+    return total === 21 ? "Blackjack!" : `${soft ? "Soft" : "Hard"} ${total}`;
+  };
+
   render() {
+    const { dealerHand, playerHand, gameScore, deck } = this.state;
+    const renderHand = hand =>
+      hand.length > 0 && (
+        <>
+          {hand.map(card => (
+            <Card down={card.down} suit={card.suit} key={card.id}>
+              <CardValue hidden={card.down} rank={card.rank} suit={card.suit}>
+                {card.rank}
+                {card.suit}
+              </CardValue>
+            </Card>
+          ))}
+        </>
+      );
+
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
+      <>
+        <GlobalStyle />
+        <Wrapper>
+          <Title>Blackjack Practice Tool</Title>
+          <DealerHand>
+            <Name>Dealer</Name>
+            {renderHand(dealerHand)}
+          </DealerHand>
+          <PlayerHand>
+            <Name>Your Hand</Name>
+            {renderHand(playerHand)}
+            <HandScore>
+              {playerHand.length > 0 && this.calculateScore()}
+            </HandScore>
+          </PlayerHand>
+          <ActionBar>
+            <Score>
+              {gameScore.correct}/{gameScore.total}
+            </Score>
+            <Score>Cards left: {deck.length}</Score>
+            <ButtonGroup>
+              <Button onClick={() => this.guess("hit")}>Hit</Button>
+              <Button onClick={() => this.guess("stand")}>Stand</Button>
+              <Button onClick={() => this.guess("double")}>Double Down</Button>
+              <Button onClick={() => this.guess("split")}>Split</Button>
+              <Button onClick={this.resetDeck}>Reset Deck</Button>
+            </ButtonGroup>
+          </ActionBar>
+        </Wrapper>
+      </>
     );
   }
 }
