@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import styled, { createGlobalStyle } from "styled-components";
+import styled, { createGlobalStyle, css } from "styled-components";
 import { random } from "lodash";
 import { GetRecommendedPlayerAction as getChartResult } from "blackjack-strategy";
 import { ToastContainer, Flip, toast } from "react-toastify";
@@ -12,6 +12,10 @@ const GlobalStyle = createGlobalStyle`
 	* {
 		box-sizing: border-box;
 		font-family: 'Quicksand';
+	}
+	.toast_override {
+		border-radius: 6px;
+		padding: 10px 20px;
 	}
 `;
 const Wrapper = styled.section`
@@ -36,6 +40,18 @@ const Title = styled.h1`
   text-align: center;
   color: #fff;
   font-size: 36px;
+  position: relative;
+
+  &:after {
+    content: "What do you do?";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: right;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.6);
+  }
 `;
 
 const Hand = styled.div`
@@ -48,7 +64,9 @@ const Hand = styled.div`
 
 const DealerHand = styled(Hand)``;
 
-const PlayerHand = styled(Hand)``;
+const PlayerHand = styled(Hand)`
+  height: 400px;
+`;
 
 const Name = styled.span`
   font-size: 24px;
@@ -125,15 +143,15 @@ const ActionBar = styled.footer`
 
 const ButtonGroup = styled.div`
   display: flex;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.1);
   position: absolute;
-  bottom: -30px;
+  top: 0;
   padding: 10px;
   border-radius: 10px;
   box-shadow: 2px 1px 4px rgba(0, 0, 0, 0.2);
 
   &:after {
-    bottom: 100%;
+    top: 100%;
     left: 50%;
     border: solid transparent;
     content: " ";
@@ -142,7 +160,7 @@ const ButtonGroup = styled.div`
     position: absolute;
     pointer-events: none;
     border-color: rgba(255, 255, 255, 0);
-    border-bottom-color: #fff;
+    border-top-color: rgba(255, 255, 255, 0.1);
     border-width: 15px;
     margin-left: -15px;
   }
@@ -153,7 +171,7 @@ const Button = styled.button`
   border: none;
   margin-right: 10px;
   color: #fff;
-  background: #b20000;
+  background: #8313d2;
   font-size: 16px;
   display: flex;
   align-items: center;
@@ -161,9 +179,10 @@ const Button = styled.button`
   padding: 0 15px;
   cursor: pointer;
   transition: background 0.2s ease-in-out;
+  outline: none;
 
   &:hover {
-    background: #d21313;
+    background: #a223fa;
   }
 
   &:disabled {
@@ -377,15 +396,17 @@ class App extends Component {
           </ActionBar>
           <ToastContainer
             position="bottom-left"
+            toastClassName="toast_override"
             autoClose={3000}
-            hideProgressBar
             newestOnTop={false}
-            closeOnClick
             rtl={false}
             pauseOnVisibilityChange
             draggable={false}
             transition={Flip}
             pauseOnHover={false}
+            closeButton={false}
+            hideProgressBar
+            closeOnClick
           />
         </Wrapper>
       </>
