@@ -1,6 +1,10 @@
 import React, { Component } from "react";
 import styled, { createGlobalStyle } from "styled-components";
+import { random } from "lodash";
 import { GetRecommendedPlayerAction as getChartResult } from "blackjack-strategy";
+import { ToastContainer, Flip, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import { newDeck } from "./deck";
 
 const GlobalStyle = createGlobalStyle`
@@ -14,7 +18,18 @@ const Wrapper = styled.section`
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #169d39;
+  background: #152936;
+`;
+
+const CircleDec = styled.div`
+  width: 82.5vw;
+  height: 82.5vw;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 150px solid rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
 `;
 
 const Title = styled.h1`
@@ -40,7 +55,8 @@ const Name = styled.span`
   color: #fff;
   font-weight: bold;
   position: absolute;
-  left: 40px;
+  left: 50%;
+  transform: translateX(-400px);
   text-align: right;
   width: 200px;
   display: inline-block;
@@ -50,7 +66,8 @@ const HandScore = styled.span`
   font-size: 28px;
   color: rgba(255, 255, 255, 0.8);
   position: absolute;
-  right: 40px;
+  left: 50%;
+  transform: translateX(200px);
   width: 200px;
   display: inline-block;
 `;
@@ -60,7 +77,7 @@ const Card = styled.div`
   width: 140px;
   padding: 20px;
   font-size: 24px;
-  background: ${p => (p.down ? "#333" : "#fff")};
+  background: ${p => (p.down ? "#006db2" : "#fff")};
   box-shadow: -3px 2px 3px rgba(0, 0, 0, 0.2);
   border-radius: 12px;
   color: ${p => (p.suit === "♠" || p.suit === "♣" ? "#333" : "#e60000")};
@@ -69,7 +86,7 @@ const Card = styled.div`
 
   &:nth-child(3) {
     left: calc(50% - 10px);
-    transform: rotate(4deg);
+    transform: rotate(${p => random(2, 6)}deg);
   }
 
   &:before {
@@ -79,7 +96,7 @@ const Card = styled.div`
     left: -50px;
     top: 120px;
     height: 250px;
-    background: ${p => (p.down ? "#444" : "aliceblue")};
+    background: ${p => (p.down ? "rgba(255,255,255,0.2)" : "aliceblue")};
     width: 200px;
   }
 `;
@@ -96,36 +113,80 @@ const CardValue = styled.span`
 
 const ActionBar = styled.footer`
   position: fixed;
-  bottom: 0;
+  top: 0;
   height: 60px;
   display: flex;
   width: 100%;
   align-items: center;
   color: #fff;
-  background: #333;
   justify-content: space-between;
   padding: 0 10px;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
+  background: #fff;
+  position: absolute;
+  bottom: -30px;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 2px 1px 4px rgba(0, 0, 0, 0.2);
+
+  &:after {
+    bottom: 100%;
+    left: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-color: rgba(255, 255, 255, 0);
+    border-bottom-color: #fff;
+    border-width: 15px;
+    margin-left: -15px;
+  }
 `;
 
 const Button = styled.button`
   border-radius: 6px;
   border: none;
-  margin-left: 10px;
+  margin-right: 10px;
   color: #fff;
-  background: #0d97d7;
+  background: #b20000;
   font-size: 16px;
   display: flex;
   align-items: center;
   height: 40px;
   padding: 0 15px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+
+  &:hover {
+    background: #d21313;
+  }
+
+  &:disabled {
+    background: #999;
+  }
+
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
 const Score = styled.span`
   font-size: 18px;
+`;
+
+const GameScore = styled.span`
+  font-size: 36px;
+
+  & > small {
+    font-weight: bold;
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.6);
+  }
 `;
 
 class App extends Component {
@@ -164,7 +225,13 @@ class App extends Component {
       options
     );
 
-    const earned = answer === result ? 1 : 0;
+    let earned = 0;
+    if (result === answer) {
+      earned = 1;
+      toast.success("Correct!");
+    } else {
+      toast.error(`Wrong! (${result})`);
+    }
 
     this.setState(
       {
@@ -250,10 +317,13 @@ class App extends Component {
         </>
       );
 
+    const disableButtons = deck.length === 0;
+
     return (
       <>
         <GlobalStyle />
         <Wrapper>
+          <CircleDec />
           <Title>Blackjack Practice Tool</Title>
           <DealerHand>
             <Name>Dealer</Name>
@@ -265,20 +335,58 @@ class App extends Component {
             <HandScore>
               {playerHand.length > 0 && this.calculateScore()}
             </HandScore>
-          </PlayerHand>
-          <ActionBar>
-            <Score>
-              {gameScore.correct}/{gameScore.total}
-            </Score>
-            <Score>Cards left: {deck.length}</Score>
             <ButtonGroup>
-              <Button onClick={() => this.guess("hit")}>Hit</Button>
-              <Button onClick={() => this.guess("stand")}>Stand</Button>
-              <Button onClick={() => this.guess("double")}>Double Down</Button>
-              <Button onClick={() => this.guess("split")}>Split</Button>
+              <Button
+                onClick={() => this.guess("hit")}
+                disabled={disableButtons}
+              >
+                Hit
+              </Button>
+              <Button
+                onClick={() => this.guess("stand")}
+                disabled={disableButtons}
+              >
+                Stand
+              </Button>
+              <Button
+                onClick={() => this.guess("double")}
+                disabled={disableButtons}
+              >
+                Double
+              </Button>
+              <Button
+                onClick={() => this.guess("split")}
+                disabled={disableButtons}
+              >
+                Split
+              </Button>
               <Button onClick={this.resetDeck}>Reset Deck</Button>
             </ButtonGroup>
+          </PlayerHand>
+          <ActionBar>
+            <GameScore>
+              {gameScore.correct}/{gameScore.total}{" "}
+              <small>
+                {gameScore.total > 0
+                  ? Math.ceil((gameScore.correct / gameScore.total) * 100)
+                  : 0}
+                %
+              </small>
+            </GameScore>
+            <Score>Cards left: {deck.length}</Score>
           </ActionBar>
+          <ToastContainer
+            position="bottom-left"
+            autoClose={3000}
+            hideProgressBar
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnVisibilityChange
+            draggable={false}
+            transition={Flip}
+            pauseOnHover={false}
+          />
         </Wrapper>
       </>
     );
