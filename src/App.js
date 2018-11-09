@@ -10,11 +10,12 @@ import { newDeck } from './deck';
 import 'react-toastify/dist/ReactToastify.css';
 
 const GlobalStyle = createGlobalStyle`
-	@import url('https://fonts.googleapis.com/css?family=Quicksand:400,700');
+	@import url('https://fonts.googleapis.com/css?family=KoHo:400,700');
 
 	* {
 		box-sizing: border-box;
-		font-family: 'Quicksand';
+		font-family: 'KoHo';
+		text-transform: uppercase;
 	}
 
 	body {
@@ -178,28 +179,42 @@ const Wrapper = styled.section`
 	width: 100vw;
 	height: 100vh;
 	overflow: hidden;
-	background: #152936;
+	background: linear-gradient(45deg, #152936 0%, #3f4c6b 100%);
 `;
 
 const CircleDec = styled.div`
-	width: 82.5vw;
-	height: 82.5vw;
+	width: 170vh;
+	height: 170vh;
 	position: absolute;
 	left: 50%;
 	top: 50%;
 	transform: translate(-50%, -50%);
-	border: 150px solid rgba(0, 0, 0, 0.3);
+	border: 150px solid rgba(0, 0, 0, 0.2);
 	border-radius: 9999px;
+
+	&:after {
+		content: '';
+		display: block;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		border-radius: 999px;
+		border: 15vh solid rgba(0, 0, 0, 0.12);
+	}
 `;
 
 const Title = styled.h1`
 	text-align: center;
 	color: #fff;
-	font-size: 36px;
+	font-size: 42px;
 	position: relative;
+	text-transform: none;
 
 	&:after {
 		content: 'What do you do?';
+		text-transform: uppercase;
 		position: absolute;
 		top: 100%;
 		left: 50%;
@@ -215,13 +230,13 @@ const Hand = styled.div`
 	position: relative;
 	align-items: center;
 	justify-content: center;
-	height: 300px;
+	height: 35vh;
 `;
 
 const DealerHand = styled(Hand)``;
 
 const PlayerHand = styled(Hand)`
-	height: 400px;
+	padding-top: 130px;
 `;
 
 const Name = styled.span`
@@ -245,35 +260,42 @@ const HandScore = styled.span`
 	width: 200px;
 	display: inline-block;
 `;
-
+// 0.714 is playing card aspect ratio
 const Card = styled.div`
-	height: 210px;
-	width: 140px;
-	padding: 20px;
+	width: calc(30vh * 0.714);
+	height: 30vh;
+	min-height: 120px;
+	min-width: calc(120px * 0.714);
 	font-size: 24px;
-	background: ${(p) => (p.down ? '#006db2' : '#fff')};
+	padding: 20px;
+	background: ${(p) =>
+		p.down
+			? 'linear-gradient(#0a91e7, #006db2)'
+			: 'linear-gradient(aliceblue, white)'};
 	box-shadow: -3px 2px 3px rgba(0, 0, 0, 0.2);
 	border-radius: 12px;
 	color: ${(p) => (p.suit === '♠' || p.suit === '♣' ? '#333' : '#e60000')};
 	position: absolute;
-	left: calc(50% - 100px);
+	left: calc(50% - 110px);
 	overflow: hidden;
 	cursor: default;
 
 	&:nth-child(3) {
-		left: calc(50% - 40px);
-		transform: rotate(${(p) => random(2, 6)}deg);
+		left: calc(50% - 50px);
+		transform: rotate(${() => random(3, 8)}deg);
 	}
 
 	&:before {
 		content: '';
 		transform: skewY(-40deg);
 		position: absolute;
-		left: -50px;
-		top: 120px;
+		left: 0;
+		top: calc(50% - 20px);
+		border-top: 20px solid rgba(255, 255, 255, 0.05);
 		height: 250px;
-		background: ${(p) => (p.down ? 'rgba(255,255,255,0.2)' : 'aliceblue')};
-		width: 200px;
+		background: ${(p) =>
+			p.down ? 'rgba(255,255,255,0.2)' : 'linear-gradient(#d8e7f4, aliceblue)'};
+		width: 100%;
 	}
 `;
 
@@ -301,27 +323,10 @@ const ActionBar = styled.footer`
 
 const ButtonGroup = styled.div`
 	display: flex;
-	background: rgba(255, 255, 255, 0.1);
 	position: absolute;
 	top: 0;
 	padding: 10px;
 	border-radius: 10px;
-	box-shadow: 2px 1px 4px rgba(0, 0, 0, 0.2);
-
-	&:after {
-		top: 100%;
-		left: 50%;
-		border: solid transparent;
-		content: ' ';
-		height: 0;
-		width: 0;
-		position: absolute;
-		pointer-events: none;
-		border-color: rgba(255, 255, 255, 0);
-		border-top-color: rgba(255, 255, 255, 0.1);
-		border-width: 15px;
-		margin-left: -15px;
-	}
 `;
 
 const Button = styled.button`
@@ -330,14 +335,16 @@ const Button = styled.button`
 	margin-right: 10px;
 	color: #fff;
 	background: #8313d2;
-	font-size: 16px;
+	font-weight: bold;
+	font-size: 21px;
 	display: flex;
 	align-items: center;
-	height: 40px;
+	height: 50px;
 	padding: 0 15px;
 	cursor: pointer;
 	transition: background 0.2s ease-in-out;
 	outline: none;
+	box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.3);
 
 	&:hover {
 		background: #a223fa;
@@ -345,6 +352,11 @@ const Button = styled.button`
 
 	&:disabled {
 		background: #999;
+	}
+
+	&:active {
+		box-shadow: inset 4px 4px 4px rgba(0, 0, 0, 0.3);
+		padding: 0 14px 0 16px;
 	}
 
 	&:last-child {
@@ -364,17 +376,14 @@ const SettingsButton = styled(Button)`
 	}
 `;
 
-const Score = styled.span`
-	font-size: 18px;
-`;
-
 const GameScore = styled.span`
-	font-size: 36px;
+	font-size: 56px;
+	font-weight: bold;
 
-	& > small {
-		font-weight: bold;
-		font-size: 28px;
-		color: rgba(255, 255, 255, 0.6);
+	&:after {
+		content: '%';
+		font-size: 36px;
+		color: rgba(255, 255, 255, 0.4);
 	}
 `;
 
@@ -410,8 +419,12 @@ const SettingsIcon = styled.i`
 	font-size: 21px;
 	font-style: normal;
 	cursor: pointer;
-	padding: 5px;
-	border-radius: 6px;
+	display: ${(p) => (p.hidden ? 'none' : 'flex')};
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 99px;
 	transition: background 0.2s ease-in-out;
 
 	&:hover {
@@ -643,17 +656,12 @@ class App extends Component {
 		);
 
 	saveSetting = (key, value) => {
-		this.setState(
-			{
-				settings: {
-					...this.state.settings,
-					[key]: value,
-				},
+		this.setState({
+			settings: {
+				...this.state.settings,
+				[key]: value,
 			},
-			() => {
-				toast.info('Setting saved');
-			}
-		);
+		});
 	};
 
 	render() {
@@ -727,15 +735,10 @@ class App extends Component {
 					</PlayerHand>
 					<ActionBar>
 						<GameScore>
-							{gameScore.correct}/{gameScore.total}{' '}
-							<small>
-								{gameScore.total > 0
-									? Math.ceil((gameScore.correct / gameScore.total) * 100)
-									: 0}
-								%
-							</small>
+							{gameScore.total > 0
+								? Math.ceil((gameScore.correct / gameScore.total) * 100)
+								: 0}
 						</GameScore>
-						<Score>Cards left: {deck.length}</Score>
 					</ActionBar>
 					<SettingsPopout hidden={settingsHidden}>
 						<SettingsHeading>Settings</SettingsHeading>
