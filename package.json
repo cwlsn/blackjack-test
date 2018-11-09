@@ -8,7 +8,9 @@
     "react": "^16.7.0-alpha.0",
     "react-dom": "^16.7.0-alpha.0",
     "react-scripts": "2.1.1",
+    "react-sparklines": "^1.7.0",
     "react-toastify": "^4.4.0",
+    "react-toggle": "^4.0.2",
     "styled-components": "^4.0.3"
   },
   "scripts": {
