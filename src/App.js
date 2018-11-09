@@ -463,6 +463,8 @@ class App extends Component {
 				recentPercents: [],
 			},
 			settings: {
+				decks: 6,
+				redealTolerance: 0.15,
 				allowSave: true,
 				hitSoft17: false,
 				offerInsurance: false,
@@ -542,19 +544,23 @@ class App extends Component {
 		const total = gameScore.total + 1;
 		const newPercent = Math.ceil((correct / total) * 100);
 
-		this.setState((prevState) => ({
-			gameScore: {
-				recentPercents: [...prevState.gameScore.recentPercents, newPercent],
-				correct,
-				total,
-			},
-		}));
-
-		if (deck.length < 4) {
-			toast.info('Shuffling new deck!');
-			this.resetDeck();
-		}
-		this.deal();
+		this.setState(
+			(prevState) => ({
+				gameScore: {
+					recentPercents: [...prevState.gameScore.recentPercents, newPercent],
+					correct,
+					total,
+				},
+			}),
+			() => {
+				if (deck.length / (settings.decks * 52) > settings.redealTolerance) {
+					this.deal();
+				} else {
+					toast.info('Deck re-shuffled!');
+					this.resetDeck();
+				}
+			}
+		);
 	};
 
 	drawCard = (down = false) => {
@@ -567,7 +573,7 @@ class App extends Component {
 	};
 
 	resetDeck = () => {
-		const deck = newDeck(6);
+		const deck = newDeck(this.state.settings.decks);
 		this.setState({ deck }, this.deal);
 	};
 
