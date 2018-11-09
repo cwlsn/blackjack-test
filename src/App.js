@@ -201,7 +201,7 @@ const CircleDec = styled.div`
 		left: 0;
 		right: 0;
 		border-radius: 999px;
-		border: 15vh solid rgba(0, 0, 0, 0.12);
+		border: 20vh solid rgba(0, 0, 0, 0.12);
 	}
 `;
 
@@ -211,10 +211,12 @@ const Title = styled.h1`
 	font-size: 42px;
 	position: relative;
 	text-transform: none;
+	text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
 
 	&:after {
-		content: 'What do you do?';
+		content: "What's your first move?";
 		text-transform: uppercase;
+		text-shadow: none;
 		position: absolute;
 		top: 100%;
 		left: 50%;
@@ -272,7 +274,7 @@ const Card = styled.div`
 		p.down
 			? 'linear-gradient(#0a91e7, #006db2)'
 			: 'linear-gradient(aliceblue, white)'};
-	box-shadow: -3px 2px 3px rgba(0, 0, 0, 0.2);
+	box-shadow: -4px 3px 1px rgba(0, 0, 0, 0.1);
 	border-radius: 12px;
 	color: ${(p) => (p.suit === '♠' || p.suit === '♣' ? '#333' : '#e60000')};
 	position: absolute;
@@ -345,6 +347,7 @@ const Button = styled.button`
 	transition: background 0.2s ease-in-out;
 	outline: none;
 	box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.3);
+	text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.15);
 
 	&:hover {
 		background: #a223fa;
