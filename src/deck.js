@@ -52,4 +52,4 @@ function newDeck(n = 1, jokers = 0) {
 	return shuffle(deck);
 }
 
-export { newDeck, shuffle };
+export { newDeck };
